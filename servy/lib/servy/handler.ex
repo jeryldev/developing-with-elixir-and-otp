@@ -1,9 +1,5 @@
 defmodule Servy.Handler do
   def handle(request) do
-    # conv = parse(request)
-    # conv = route(conv)
-    # format_response(conv)
-
     request
     |> parse
     |> route
@@ -23,18 +19,16 @@ defmodule Servy.Handler do
   end
 
   def route(conv) do
-    # TODO: Create a new map that also has the response body:
-    conv = %{method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers"}
+    %{conv | resp_body: "Bears, Lions, Tigers"}
   end
 
   def format_response(conv) do
-    # TODO: Use values in the map to create an HTTP response strictly:
     """
     HTTP/1.1 200 OK
     Content-Type: text/html
-    Content-Length: 20
+    Content-Length: #{byte_size(conv.resp_body)}
 
-    Bears, Lions, Tigers
+    #{conv.resp_body}
     """
   end
 end
@@ -46,14 +40,6 @@ User-Agent: ExampleBrowser/1.0
 Accept: */*
 
 """
-
-# expected_response = """
-# HTTP/1.1 200 OK
-# Content-Type: text/html
-# Content-Length: 20
-
-# Bears, Lions, Tigers
-# """
 
 response = Servy.Handler.handle(request)
 
