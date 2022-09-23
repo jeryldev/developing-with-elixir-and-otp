@@ -1,32 +1,28 @@
 defmodule Servy.Handler do
   require Logger
 
+  @moduledoc """
+  Handles HTTP requests.
+  """
+
+  @pages_path Path.expand("../../pages", __DIR__)
+
+  @doc """
+  Transforms the request into a response
+  """
   def handle(request) do
     request
     |> parse
     |> rewrite_path
     |> log
     |> route
-    |> emojify
     |> track
     |> format_response
   end
 
-  def emojify(%{status: 200, resp_body: resp_body} = conv) do
-    emojies = String.duplicate("🎉", 5)
-
-    updated_resp_body = """
-      #{emojies}
-
-      #{resp_body}
-      #{emojies}
-    """
-
-    %{conv | resp_body: updated_resp_body}
-  end
-
-  def emojify(conv), do: conv
-
+  @doc """
+  Logs 404 requests
+  """
   def track(%{status: 404, path: path} = conv) do
     Logger.warn("Warning: #{path} is on the loose!")
     conv
@@ -73,21 +69,21 @@ defmodule Servy.Handler do
   end
 
   def route(%{method: "GET", path: "/about"} = conv) do
-    Path.expand("../../pages", __DIR__)
+    @pages_path
     |> Path.join("about.html")
     |> File.read()
     |> handle_file(conv)
   end
 
   def route(%{method: "GET", path: "/bears/new"} = conv) do
-    Path.expand("../../pages", __DIR__)
+    @pages_path
     |> Path.join("form.html")
     |> File.read()
     |> handle_file(conv)
   end
 
   def route(%{method: "GET", path: "/pages/" <> file} = conv) do
-    Path.expand("../../pages", __DIR__)
+    @pages_path
     |> Path.join(file <> ".html")
     |> File.read()
     |> handle_file(conv)
