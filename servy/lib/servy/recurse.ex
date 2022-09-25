@@ -29,6 +29,12 @@ defmodule Servy.Recurse do
   end
 
   def triple([], current_list), do: current_list |> Enum.reverse()
+
+  def my_map([head | tail], fun) do
+    [fun.(head) | my_map(tail, fun)]
+  end
+
+  def my_map([], _fun), do: []
 end
 
 # Servy.Recurse.loopy([1, 2, 3, 4, 5])
@@ -37,3 +43,7 @@ end
 
 # IO.inspect(sum_1)
 # IO.inspect(sum_2)
+
+# my_map_1 = Servy.Recurse.my_map([1, 2, 3, 4, 5], &(&1 * 5))
+
+# IO.inspect(my_map_1)
