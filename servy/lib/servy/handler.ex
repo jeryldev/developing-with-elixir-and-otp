@@ -23,11 +23,30 @@ defmodule Servy.Handler do
     # |> log
     |> route
     |> track
+    |> put_content_length
     |> format_response
+  end
+
+  def route(%Conv{method: "GET", path: "/pages/" <> name} = conv) do
+    test =
+      @pages_path
+      |> Path.join("#{name}.md")
+
+    IO.inspect(test)
+
+    @pages_path
+    |> Path.join("#{name}.md")
+    |> File.read()
+    |> handle_file(conv)
+    |> markdown_to_html()
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
+  end
+
+  def route(%Conv{method: "GET", path: "/api/bears"} = conv) do
+    Servy.Api.BearController.index(conv)
   end
 
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
@@ -41,6 +60,10 @@ defmodule Servy.Handler do
 
   def route(%Conv{method: "POST", path: "/bears"} = conv) do
     BearController.create(conv, conv.params)
+  end
+
+  def route(%Conv{method: "POST", path: "/api/bears"} = conv) do
+    Servy.Api.BearController.create(conv, conv.params)
   end
 
   def route(%Conv{method: "DELETE", path: "/bears/" <> _id} = conv) do
@@ -72,13 +95,32 @@ defmodule Servy.Handler do
     %{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
-  def format_response(%Conv{} = conv) do
+  def format_response(%Conv{resp_body: resp_body} = conv) do
     """
     HTTP/1.1 #{Conv.full_status(conv)}\r
-    Content-Type: text/html\r
-    Content-Length: #{byte_size(conv.resp_body)}\r
+    #{format_response_headers(conv)}
     \r
-    #{conv.resp_body}
+    #{resp_body}
     """
   end
+
+  defp put_content_length(%Conv{resp_headers: resp_headers, resp_body: resp_body} = conv) do
+    headers = Map.put(resp_headers, "Content-Length", byte_size(resp_body))
+    %{conv | resp_headers: headers}
+  end
+
+  defp format_response_headers(%Conv{resp_headers: resp_headers} = _conv) do
+    for {key, value} <- resp_headers do
+      "#{key}: #{value}\r"
+    end
+    |> Enum.sort()
+    |> Enum.reverse()
+    |> Enum.join("\n")
+  end
+
+  defp markdown_to_html(%Conv{status: 200, resp_body: resp_body} = conv) do
+    %{conv | resp_body: Earmark.as_html!(resp_body)}
+  end
+
+  defp markdown_to_html(%Conv{} = conv), do: conv
 end
