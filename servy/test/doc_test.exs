@@ -4,4 +4,5 @@ defmodule DocTest do
   doctest Servy.Parser
   doctest Servy.Handler
   doctest Servy.Plugins
+  doctest Servy.HttpServer
 end
