@@ -28,7 +28,6 @@ defmodule Servy.HttpServer do
   # curl http://localhost:4000/api/bears
   # curl -H 'Content-Type: application/json' -XPOST http://localhost:4000/api/bears -d '{"name": "Breezly", "type": "Polar"}'
 
-
   @doc """
   Starts the server on the given 'port' of localhost.
   """
@@ -36,7 +35,7 @@ defmodule Servy.HttpServer do
     # Creates a socket to listen for client connections.
     # 'listen_socket' is bound to the listening socket.
     {:ok, listen_socket} =
-      :gen_tcp.listen(port, [:binary, packet: :raw, active: false, reuseaddr: true])
+      :gen_tcp.listen(port, [:binary, backlog: 10, packet: :raw, active: false, reuseaddr: true])
 
     # Socket options (don't worry about these details):
     # `:binary` - open the socket in "binary" mode and deliver data as binaries
@@ -62,7 +61,10 @@ defmodule Servy.HttpServer do
     IO.puts("⚡️  Connection accepted!\n")
 
     # Receives the request and sends a response over the client socket.
-    serve(client_socket)
+    # serve(client_socket)
+    # spawn(fn -> serve(client_socket) end)
+    pid = spawn(__MODULE__, :serve, [client_socket])
+    :ok = :gen_tcp.controlling_process(client_socket, pid)
 
     # Loop back to wait and accept the next connection.
     accept_loop(listen_socket)
@@ -73,6 +75,8 @@ defmodule Servy.HttpServer do
   sends a response back over the same socket.
   """
   def serve(client_socket) do
+    IO.puts("#{inspect(self())}: Working on it!")
+
     client_socket
     |> read_request
     # |> generate_response
