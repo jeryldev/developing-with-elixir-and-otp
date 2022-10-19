@@ -7,6 +7,8 @@ defmodule Servy.Handler do
   alias Servy.BearController
   alias Servy.VideoCam
   alias Servy.Tracker
+  alias Servy.PledgeController
+  alias Servy.FourOhFourCounter
 
   @pages_path Path.expand("pages", File.cwd!())
 
@@ -28,6 +30,23 @@ defmodule Servy.Handler do
     |> track
     |> put_content_length
     |> format_response
+  end
+
+  def route(%Conv{method: "GET", path: "/404s"} = conv) do
+    counts = FourOhFourCounter.get_counts()
+    %{conv | status: 200, resp_body: inspect(counts)}
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges/new"} = conv) do
+    PledgeController.new(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/pledges"} = conv) do
+    PledgeController.create(conv, conv.params)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges"} = conv) do
+    PledgeController.index(conv)
   end
 
   def route(%Conv{method: "GET", path: "/sensors"} = conv) do
