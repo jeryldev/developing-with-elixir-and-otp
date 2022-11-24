@@ -1,10 +1,10 @@
-defmodule FourOhFourCounterTest do
+defmodule FourOhFourCounterHandRolledTest do
   use ExUnit.Case
 
-  alias Servy.FourOhFourCounter, as: Counter
+  alias Servy.FourOhFourCounterHandRolled, as: Counter
 
   test "reports counts of missing path requests" do
-    IO.inspect("Servy.FourOhFourCounter")
+    IO.inspect("Servy.FourOhFourCounterHandRolled")
     Counter.start()
 
     Counter.bump_count("/bigfoot")
