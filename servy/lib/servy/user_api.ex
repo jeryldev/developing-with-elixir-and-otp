@@ -5,7 +5,7 @@ defmodule Servy.UserApi do
     |> handle_response
   end
 
-  def query(id), do: IO.puts("id should be a binary.")
+  def query(_id), do: IO.puts("id should be a binary.")
 
   defp api_url(id) do
     "https://jsonplaceholder.typicode.com/users/#{URI.encode(id)}"

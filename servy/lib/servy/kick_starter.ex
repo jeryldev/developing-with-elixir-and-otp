@@ -1,4 +1,5 @@
 defmodule Servy.KickStarter do
+  alias Application
   use GenServer
 
   # Client Interface
@@ -35,8 +36,11 @@ defmodule Servy.KickStarter do
   end
 
   defp start_server do
-    IO.puts("Starting the HTTP server...")
-    spawn_link(Servy.HttpServer, :start, [4000])
+    port = Application.get_env(:servy, :port)
+    IO.puts("Starting the HTTP server on port #{port}...")
+    server_pid = spawn_link(Servy.HttpServer, :start, [port])
+    Process.register(server_pid, :http_server)
+    server_pid
     #
     # server_pid = spawn(Servy.HttpServer, :start, [4000])
     # Process.link(server_pid)
