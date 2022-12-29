@@ -7,15 +7,56 @@ defmodule Servy.SensorServer do
 
   defmodule State do
     defstruct sensor_data: %{},
+              target: nil,
               refresh_interval: :timer.seconds(20)
+  end
+
+  def child_spec(:frequent) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [[interval: 60, target: "bigfoot"]]},
+      restart: :permanent,
+      shutdown: 5000,
+      type: :worker
+    }
+  end
+
+  def child_spec(:infrequent) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [[interval: 100, target: "nessie"]]},
+      restart: :permanent,
+      shutdown: 5000,
+      type: :worker
+    }
+  end
+
+  def child_spec(_) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [[]]},
+      restart: :permanent,
+      shutdown: 5000,
+      type: :worker
+    }
   end
 
   # Client Interface
 
-  def start do
-    IO.puts("Starting the sensor server...")
-    IO.inspect(%State{})
-    GenServer.start(__MODULE__, %State{}, name: @name)
+  def start_link(options \\ []) do
+    interval = Keyword.get(options, :interval)
+    target = Keyword.get(options, :target)
+    IO.puts("Starting the sensor server with #{interval} min refresh...")
+
+    state =
+      if is_integer(interval),
+        do: %State{target: target, refresh_interval: :timer.seconds(interval)},
+        else: %State{}
+
+    IO.inspect("sensor initial state")
+    IO.inspect(state)
+
+    GenServer.start_link(__MODULE__, state, name: @name)
   end
 
   def get_sensor_data do

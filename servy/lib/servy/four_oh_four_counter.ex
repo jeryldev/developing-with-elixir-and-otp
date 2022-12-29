@@ -5,10 +5,10 @@ defmodule Servy.FourOhFourCounter do
 
   # Client Interface functions
 
-  def start do
+  def start_link(_args) do
     IO.puts("Starting the 404 counter...")
 
-    case GenServer.start(__MODULE__, %{}, name: @name) do
+    case GenServer.start_link(__MODULE__, %{}, name: @name) do
       {:ok, pid} -> {:ok, pid}
       {:error, {:already_started, pid}} -> {:ok, pid}
       error -> error

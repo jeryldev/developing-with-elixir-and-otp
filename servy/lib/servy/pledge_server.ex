@@ -1,18 +1,33 @@
 defmodule Servy.PledgeServer do
   @name :pledge_server
 
+  # First way to override the child_spec of a GenServer Process
+  # use GenServer, restart: :temporary
   use GenServer
 
   defmodule State do
     defstruct cache_size: 3, pledges: []
   end
 
+  # Second way to override the child_spec of a GenServer Process
+  # def child_spec(_arg \\ []) do
+  #   %{
+  #     id: Servy.PledgeServer,
+  #     restart: :temporary,
+  #     shutdown: 5000,
+  #     start: {Servy.PledgeServer, :start_link, [[]]},
+  #     type: :worker
+  #   }
+  # end
+
+  # Run Servy.PledgeServer.child_spec([]) to confirm child_spec
+
   # Client Interface Functions
 
-  def start do
+  def start_link(_arg) do
     IO.puts("Starting the pledge server...")
 
-    case GenServer.start(__MODULE__, %State{}, name: @name) do
+    case GenServer.start_link(__MODULE__, %State{}, name: @name) do
       {:ok, pid} -> {:ok, pid}
       {:error, {:already_started, pid}} -> {:ok, pid}
       error -> error
